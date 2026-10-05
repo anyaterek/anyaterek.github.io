@@ -5,7 +5,7 @@ export const person = {
   /** GitHub bio, verbatim */
   bio: '∴ Engineer of crossings ∴',
   roles: ['tech lead of cross-functional teams (medtech)', 'fullstack'],
-  line: 'Tech lead (medtech), fullstack engineer, painter.',
+  line: 'Tech lead (medtech), fullstack engineer.',
   /** cv-generic-en.md, Summary */
   tenure: '8 years in web development and 3.5 years in lead roles.',
   epigraph: 'Somewhere between the signal and the thing that watches it.',
