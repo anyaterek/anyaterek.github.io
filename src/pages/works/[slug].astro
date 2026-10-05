@@ -1,0 +1,338 @@
+---
+/** Work page as a README: key: value metadata, step log, facts. Hidden works get no page. */
+import { Picture } from 'astro:assets';
+import Site from '../../layouts/Site.astro';
+import { visibleWorks, isArt, KIND_LABEL, LANG_TOKEN, VISIBILITY_LABEL, type Work } from '../../data/works';
+
+export function getStaticPaths() {
+  const list = visibleWorks;
+  return list.map((work, i) => ({
+    params: { slug: work.slug },
+    props: {
+      work,
+      prev: list[(i - 1 + list.length) % list.length],
+      next: list[(i + 1) % list.length],
+    },
+  }));
+}
+
+interface Props {
+  work: Work;
+  prev: Work;
+  next: Work;
+}
+
+const { work, prev, next } = Astro.props;
+const art = isArt(work);
+const badge = VISIBILITY_LABEL[work.visibility];
+const stages = work.media ?? [];
+
+const join = (xs?: string[]) => (xs && xs.length ? xs.join(' · ') : undefined);
+
+// Empty fields are not rendered
+const spec = [
+  ['type', work.type ?? KIND_LABEL[work.kinds[0]]],
+  ['stack', join(work.stack)],
+  ['role', work.role],
+  ['period', work.period],
+  ['series', work.series],
+  ['status', work.status],
+].filter((r): r is [string, string] => Boolean(r[1]));
+---
+
+<Site title={`${work.title} · Anna Terekhova`} description={work.desc ?? work.title} section="works">
+  <article class="sheet wrap">
+    <nav class="crumbs label" aria-label="Breadcrumb">
+      <a href="/#works">works</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{work.title}</span>
+    </nav>
+
+    <header class="sheet-head">
+      <div class="head">
+        <span class="marker" data-kind={work.kinds[0]} aria-hidden="true"></span>
+        <h1>{work.title}</h1>
+        <span class="badge">{badge}</span>
+      </div>
+      {work.protocol && <p class="protocol mono">{work.protocol}</p>}
+      {work.desc && <p class="desc">{work.desc}</p>}
+    </header>
+
+    <dl class="kv spec">
+      {work.lang && (
+        <div>
+          <dt>lang</dt>
+          <dd><span class="lang" data-lang={LANG_TOKEN[work.lang]}>{work.lang}</span></dd>
+        </div>
+      )}
+      {
+        spec.map(([k, v]) => (
+          <div>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))
+      }
+      {
+        work.visibility !== 'commercial' && work.metrics && work.metrics.length > 0 && (
+          <div>
+            <dt>metrics</dt>
+            <dd>
+              <ul>
+                {work.metrics.map((m) => (
+                  <li>{m}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        )
+      }
+      {
+        work.refs?.map((r) => (
+          <div>
+            <dt>{r.type}</dt>
+            <dd>
+              <a class="text-link" href={r.href} {...(r.href.startsWith('http') ? { rel: 'noopener', target: '_blank' } : {})}>
+                {r.label}
+                {r.href.startsWith('http') && <span aria-hidden="true"> ↗</span>}
+              </a>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    {
+      work.how && work.how.length > 0 && (
+        <section class="block" aria-label="How it works">
+          <p class="label">how</p>
+          <ol class="log">
+            {work.how.map((s, i) => (
+              <li>
+                <span class="n">[{String(i + 1).padStart(2, '0')}]</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      work.facts && work.facts.length > 0 && (
+        <section class="block" aria-label="Facts">
+          <p class="label">facts</p>
+          <ul class="facts">
+            {work.facts.map((f) => (
+              <li>{f}</li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      art && stages.length > 0 && (
+        <section class="block wide" aria-label="Stages">
+          <p class="label">stages</p>
+          <ol class="stages">
+            {stages.map((m, i) => (
+              <li>
+                <figure>
+                  <div class="frame stage-frame">
+                    <Picture fallbackFormat="jpg" src={m.src} alt={m.alt} widths={[360, 720, 1200]} sizes="(min-width: 48rem) 24rem, 90vw" />
+                  </div>
+                  <figcaption class="label">
+                    {String(i + 1).padStart(2, '0')} · {m.stage}
+                  </figcaption>
+                </figure>
+              </li>
+            ))}
+          </ol>
+          {work.video && (
+            <figure class="video">
+              <video src={work.video.src} controls preload="metadata" playsinline muted />
+              <figcaption class="label">{work.video.label}</figcaption>
+            </figure>
+          )}
+        </section>
+      )
+    }
+
+    <nav class="pager" aria-label="Adjacent works">
+      <a href={`/works/${prev.slug}/`} rel="prev">
+        <span class="label">←</span>
+        <span class="pager-title">{prev.title}</span>
+      </a>
+      <a href={`/works/${next.slug}/`} rel="next" class="next">
+        <span class="label">→</span>
+        <span class="pager-title">{next.title}</span>
+      </a>
+    </nav>
+  </article>
+</Site>
+
+<style>
+  .sheet {
+    display: grid;
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-8);
+  }
+
+  /* README-колонка: текст не шире measure, лента стадий на всю ширину */
+  .sheet > :not(.wide) {
+    max-width: var(--measure);
+  }
+
+  .crumbs {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .crumbs a:hover {
+    color: var(--color-accent);
+  }
+
+  .crumbs [aria-current] {
+    color: var(--color-ink-2);
+  }
+
+  .sheet-head {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .head .badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  h1 {
+    font-size: var(--text-h2);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-heading);
+    overflow-wrap: anywhere;
+  }
+
+  .protocol {
+    color: var(--color-ink-3);
+  }
+
+  .desc {
+    color: var(--color-ink-2);
+  }
+
+  .spec {
+    padding-block: var(--space-3);
+    border-block: var(--line-hair) solid var(--color-rule);
+  }
+
+  .block {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .log {
+    display: grid;
+    gap: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-ink-2);
+  }
+
+  .log li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .n {
+    color: var(--color-ink-3);
+  }
+
+  .facts {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .facts li {
+    position: relative;
+    padding-left: var(--space-4);
+  }
+
+  .facts li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc(var(--leading-body) * 0.5em);
+    width: var(--space-2);
+    height: var(--line-hair);
+    background: var(--color-ink-3);
+  }
+
+  .stages {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  }
+
+  .stages figure {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .stage-frame {
+    height: var(--thumb-h);
+    padding: var(--space-2);
+  }
+
+  .video {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    max-width: var(--video-w);
+  }
+
+  .video video {
+    width: 100%;
+    background: var(--color-panel);
+    border: var(--line-hair) solid var(--color-rule);
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  .pager a {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: var(--line-hair) solid var(--color-rule);
+    transition: border-color var(--duration-quick) var(--ease-calm);
+  }
+
+  .pager a:hover {
+    border-color: var(--color-accent);
+  }
+
+  .pager .next {
+    text-align: right;
+  }
+
+  .pager-title {
+    font-weight: var(--weight-medium);
+    overflow-wrap: anywhere;
+  }
+</style>

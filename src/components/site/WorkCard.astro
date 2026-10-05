@@ -1,0 +1,243 @@
+---
+/**
+ * Card in the GitHub pinned repository format, self-sufficient summary:
+ * 1) name · badge  2) what she did, up to 2 lines  3) mono meta: language dot, or role · period · key stack.
+ */
+import { Picture } from 'astro:assets';
+import { LANG_TOKEN, VISIBILITY_LABEL, isArt, type Work } from '../../data/works';
+
+interface Props {
+  work: Work;
+}
+
+const { work } = Astro.props;
+const thumb = work.media?.[work.cover ?? 0];
+const badge = VISIBILITY_LABEL[work.visibility];
+const art = isArt(work);
+
+/** 3–5 key technologies */
+const KEY_STACK = 4;
+const meta: string[] = (isArt(work) ? [work.series] : [work.role, work.period]).filter((x): x is string => Boolean(x));
+/** commercial cases have no language: key stack goes on its own line */
+const stackLine = !work.lang && work.stack ? work.stack.slice(0, KEY_STACK).join(', ') : undefined;
+const extra = work.lang && work.stack ? work.stack.filter((t) => t !== work.lang).slice(0, KEY_STACK - 1).join(', ') : undefined;
+---
+
+<li class="card-item">
+  {
+    art && thumb ? (
+      <>
+        <button type="button" class="card" data-lightbox={`lb-${work.slug}`} aria-haspopup="dialog">
+    <div class="body">
+      <div class="head">
+        <span class="marker" data-kind={work.kinds[0]} aria-hidden="true"></span>
+        <h3 class="title">{work.title}</h3>
+        <span class="badge">{badge}</span>
+      </div>
+      {work.desc && <p class="desc">{work.desc}</p>}
+      <p class="meta">
+        {work.lang && <span class="lang" data-lang={LANG_TOKEN[work.lang]}>{work.lang}</span>}
+        {extra && <span>{extra}</span>}
+        {!!work.stars && <span>★ {work.stars}</span>}
+        {meta.map((m) => <span>{m}</span>)}
+        {stackLine && <span class="stack">{stackLine}</span>}
+      </p>
+    </div>
+    {
+      thumb && (
+        <div class="frame thumb">
+          <Picture fallbackFormat="jpg" src={thumb.src} alt="" widths={[112, 224]} sizes="3.5rem" />
+        </div>
+      )
+    }
+        </button>
+        <dialog class="lightbox" id={`lb-${work.slug}`} aria-label={work.title}>
+          <Picture class="lb-img" fallbackFormat="jpg" src={thumb.src} alt={thumb.alt} widths={[800, 1400, 2200]} sizes="90vw" loading="lazy" />
+          <p class="lb-cap">
+            <span>{work.title}</span>
+            <a href={`/works/${work.slug}/`}>details →</a>
+            <button type="button" class="lb-close" data-close>close · esc</button>
+          </p>
+        </dialog>
+      </>
+    ) : (
+      <a class="card" href={`/works/${work.slug}/`}>
+    <div class="body">
+      <div class="head">
+        <span class="marker" data-kind={work.kinds[0]} aria-hidden="true"></span>
+        <h3 class="title">{work.title}</h3>
+        <span class="badge">{badge}</span>
+      </div>
+      {work.desc && <p class="desc">{work.desc}</p>}
+      <p class="meta">
+        {work.lang && <span class="lang" data-lang={LANG_TOKEN[work.lang]}>{work.lang}</span>}
+        {extra && <span>{extra}</span>}
+        {!!work.stars && <span>★ {work.stars}</span>}
+        {meta.map((m) => <span>{m}</span>)}
+        {stackLine && <span class="stack">{stackLine}</span>}
+      </p>
+    </div>
+    {
+      thumb && (
+        <div class="frame thumb">
+          <Picture fallbackFormat="jpg" src={thumb.src} alt="" widths={[112, 224]} sizes="3.5rem" />
+        </div>
+      )
+    }
+      </a>
+    )
+  }
+</li>
+
+<script>
+  // canvases open full-size in a native <dialog>; Esc closes it natively, a click outside the image closes it too
+  document.querySelectorAll<HTMLButtonElement>('[data-lightbox]').forEach((btn) => {
+    const dlg = document.getElementById(btn.dataset.lightbox!) as HTMLDialogElement | null;
+    if (!dlg) return;
+    btn.addEventListener('click', () => dlg.showModal());
+    dlg.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t === dlg || t.closest('[data-close]')) dlg.close();
+    });
+  });
+</script>
+
+<style>
+  button.card {
+    width: 100%;
+    text-align: start;
+    font: inherit;
+    color: inherit;
+    background: none;
+    cursor: zoom-in;
+  }
+
+  .lightbox {
+    max-width: 92vw;
+    max-height: 92vh;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-paper);
+  }
+
+  .lightbox::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  }
+
+  .lightbox :global(.lb-img) {
+    display: block;
+    max-width: 92vw;
+    max-height: 84vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .lb-cap {
+    display: flex;
+    gap: var(--space-4);
+    align-items: baseline;
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+  }
+
+  .lb-cap a,
+  .lb-close {
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  .lb-close {
+    margin-inline-start: auto;
+    font: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .card {
+    display: flex;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-4);
+    border: var(--line-hair) solid var(--color-rule);
+    border-radius: var(--radius-card);
+    transition:
+      border-color var(--duration-quick) var(--ease-calm),
+      background-color var(--duration-quick) var(--ease-calm);
+  }
+
+  .card:hover {
+    background: var(--color-panel);
+    border-color: var(--color-rule-strong);
+  }
+
+  .card:hover .title {
+    color: var(--color-accent);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .title {
+    font-size: var(--text-h3);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-tight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--duration-quick) var(--ease-calm);
+  }
+
+  .desc {
+    color: var(--color-ink-2);
+    font-size: var(--text-small);
+    line-height: var(--leading-tight);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+    margin-top: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    line-height: var(--leading-tight);
+    color: var(--color-ink-3);
+  }
+
+  .meta > span + span:not(.stack)::before {
+    content: '·';
+    margin-inline: var(--space-2);
+  }
+
+  .meta > .stack {
+    flex-basis: 100%;
+  }
+
+  .thumb {
+    flex: none;
+    width: var(--thumb-mini);
+    height: var(--thumb-mini);
+    align-self: center;
+  }
+</style>

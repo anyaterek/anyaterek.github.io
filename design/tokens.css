@@ -1,0 +1,145 @@
+/*
+ * scandinavian technical — design tokens (v3)
+ * Единственный источник цветов, шрифтов, отступов и таймингов.
+ * Подключается в src/styles/site.css. Компоненты используют только эти переменные.
+ */
+
+:root {
+  /* ---------- Color: light (основная тема) ---------- */
+  --color-paper: #f5f3ee; /* тёплый off-white */
+  --color-panel: #ece9e2; /* подложка медиа, hover карточки */
+  --color-rule: #e0dcd3; /* тонкие разделители, контур карточки */
+  --color-rule-strong: #c9c4b9; /* hover-контур, подчёркивание ссылок */
+  --color-ink: #2c2e31; /* мягкий графит */
+  --color-ink-2: #4e5257;
+  --color-ink-3: #62666b; /* метки и мета, AA на paper и panel */
+  --color-accent: #3f6374; /* fjord slate: единственный акцент */
+  --color-on-accent: #f5f3ee;
+  --color-edu: #6a5f34; /* olive ochre: учебные записи в опыте */
+  --color-scrim: rgb(245 243 238 / 0.92); /* фон sticky-шапки */
+
+  /* Цвет языка — пигмент linguist, приглушённый смешиванием с ink-3.
+   * Точка рядом с названием, сама смысла не несёт; подстраивается под тему через ink-3. */
+  --lang-mix: 55%;
+  --lang-js: color-mix(in oklab, #f1e05a var(--lang-mix), var(--color-ink-3));
+  --lang-ts: color-mix(in oklab, #3178c6 var(--lang-mix), var(--color-ink-3));
+  --lang-sol: color-mix(in oklab, #aa6746 var(--lang-mix), var(--color-ink-3));
+  --lang-cpp: color-mix(in oklab, #f34b7d var(--lang-mix), var(--color-ink-3));
+  --lang-html: color-mix(in oklab, #e34c26 var(--lang-mix), var(--color-ink-3));
+  --lang-py: color-mix(in oklab, #3572a5 var(--lang-mix), var(--color-ink-3));
+  --lang-dot: 0.5rem;
+
+  color-scheme: light;
+
+  /* ---------- Typography ---------- */
+  --font-sans: 'Inter Tight Variable', 'Inter Tight', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+  /* hero character art: Plex Mono subsets have no box-drawing glyphs, so the art uses system mono only */
+  --font-art: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+
+  --text-art: clamp(0.8125rem, 0.7rem + 0.6vw, 1.0625rem); /* 33 columns fit 358px at the minimum */
+  --text-h1: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+  --text-h2: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+  --text-h3: 1.0625rem;
+  --text-lead: clamp(1.125rem, 1rem + 0.5vw, 1.3125rem);
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-label: 0.75rem;
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-strong: 600;
+
+  --leading-art: 1.25;
+  --leading-heading: 1.15;
+  --leading-body: 1.6;
+  --leading-tight: 1.35;
+
+  --tracking-heading: -0.025em;
+  --tracking-label: 0.08em;
+
+  --measure: 64ch;
+
+  /* ---------- Space ----------
+   * Модуль 8px. Внутри блоков — шаги 1–4 (плотно), между блоками — 7–9 (воздух). */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 — внутри карточки */
+  --space-4: 1rem; /* 16 — боковой отступ на мобильном */
+  --space-5: 1.5rem; /* 24 */
+  --space-6: 2.5rem; /* 40 — заголовок секции → содержимое */
+  --space-7: 4rem; /* 64 */
+  --space-8: 5.5rem; /* 88 — между секциями на мобильном */
+  --space-9: 8rem; /* 128 — между секциями на десктопе */
+
+  --gutter: var(--space-4);
+  --page-max: 75rem; /* 1200 */
+  --header-h: 4rem;
+  --col-key: 10ch; /* колонка ключа в key: value */
+  --col-date: 13ch; /* колонка периода в опыте: «Oct 2025 – Present» переносится */
+
+  /* ---------- Lines ---------- */
+  --line-hair: 1px;
+  --line-active: 2px;
+
+  /* ---------- Radius ---------- */
+  --radius-sharp: 0;
+  --radius-chip: 2px;
+  --radius-card: 4px; /* мягкий угол карточки, едва заметный */
+
+  /* ---------- Elevation: теней нет, глубина — линией и подложкой ---------- */
+  --shadow-none: none;
+
+  /* ---------- Marker (форма = категория) ---------- */
+  --marker-size: 0.5625rem;
+  --marker-line: 1.25px;
+
+  /* ---------- Monogram ---------- */
+  --mono-size: 2rem;
+
+  /* ---------- Motion: calm ---------- */
+  --duration-quick: 160ms;
+  --duration-standard: 240ms;
+  --ease-calm: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* ---------- Layers ---------- */
+  --z-header: 10;
+  --z-skip: 20;
+
+  /* ---------- Media ---------- */
+  --thumb-h: 14rem; /* рамка стадии процесса */
+  --thumb-mini: 3.5rem; /* миниатюра холста в карточке */
+  --video-w: 20rem;
+}
+
+/* ---------- Dark: тот же интерьер вечером, тёплый графит, не чёрный ---------- */
+:root[data-theme='dark'] {
+  --color-paper: #22211f;
+  --color-panel: #2a2927;
+  --color-rule: #373532;
+  --color-rule-strong: #4a4743;
+  --color-ink: #e8e5de;
+  --color-ink-2: #bcb7ad;
+  --color-ink-3: #9f9a90;
+  --color-accent: #8fb0be;
+  --color-on-accent: #22211f;
+  --color-edu: #c2b58a;
+  --color-scrim: rgb(34 33 31 / 0.92);
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-quick: 0ms;
+    --duration-standard: 0ms;
+  }
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: var(--space-6);
+    --header-h: 4.5rem;
+  }
+}

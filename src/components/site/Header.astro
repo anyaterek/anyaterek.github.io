@@ -1,0 +1,223 @@
+---
+import Monogram from './Monogram.astro';
+
+interface Props {
+  current?: 'works' | 'experience' | 'contact';
+}
+
+const { current } = Astro.props;
+
+const items = [
+  { id: 'works', label: 'works' },
+  { id: 'experience', label: 'experience' },
+  { id: 'contact', label: 'contact' },
+] as const;
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="name" href="/" aria-label="Anna Terekhova — home"><Monogram /></a>
+    <nav aria-label="Main" class="nav">
+      <ul>
+        {
+          items.map((it) => (
+            <li>
+              <a href={`/#${it.id}`} data-nav={it.id} aria-current={current === it.id ? 'true' : undefined}>
+                {it.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <button class="theme" type="button" data-theme-toggle aria-pressed="false">
+      <span class="theme-text">theme: <span data-theme-label>light</span></span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: var(--color-scrim);
+    border-bottom: var(--line-hair) solid var(--color-rule);
+  }
+
+  .bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'name theme'
+      'nav nav';
+    align-items: center;
+    column-gap: var(--space-4);
+  }
+
+  .name {
+    grid-area: name;
+    justify-self: start;
+    min-height: var(--header-h);
+    display: flex;
+    align-items: center;
+    color: var(--color-ink);
+    transition: color var(--duration-quick) var(--ease-calm);
+  }
+
+  .name:hover {
+    color: var(--color-accent);
+  }
+
+  .nav {
+    grid-area: nav;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    border-top: var(--line-hair) solid var(--color-rule);
+  }
+
+  .nav ul {
+    display: flex;
+    gap: var(--space-5);
+  }
+
+  .nav a {
+    display: block;
+    position: relative;
+    padding-block: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-ink-2);
+    white-space: nowrap;
+    transition: color var(--duration-quick) var(--ease-calm);
+  }
+
+  .nav a:hover,
+  .nav a[aria-current='true'] {
+    color: var(--color-ink);
+  }
+
+  .nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--line-hair) * -1);
+    height: var(--line-active);
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration-standard) var(--ease-calm);
+  }
+
+  .nav a[aria-current='true']::after {
+    transform: scaleX(1);
+  }
+
+  .theme {
+    grid-area: theme;
+    padding-block: var(--space-2);
+  }
+
+  .theme-text {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-ink-3);
+    transition: color var(--duration-quick) var(--ease-calm);
+  }
+
+  .theme:hover .theme-text {
+    color: var(--color-ink);
+  }
+
+  @media (min-width: 48rem) {
+    .bar {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: 'name nav theme';
+      min-height: var(--header-h);
+    }
+
+    .nav {
+      justify-self: end;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      overflow: visible;
+    }
+
+    .nav ul {
+      gap: var(--space-6);
+    }
+
+    .theme {
+      margin-left: var(--space-5);
+      padding-left: var(--space-5);
+      border-left: var(--line-hair) solid var(--color-rule);
+    }
+
+    .nav a {
+      padding-block: calc((var(--header-h) - var(--text-small) * var(--leading-body)) / 2);
+    }
+  }
+</style>
+
+<script>
+  // Theme
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const label = document.querySelector<HTMLElement>('[data-theme-label]');
+  const sync = () => {
+    const dark = root.dataset.theme === 'dark';
+    btn?.setAttribute('aria-pressed', String(dark));
+    if (label) label.textContent = dark ? 'dark' : 'light';
+    // browser chrome colour comes from the token, not a duplicated hex
+    const paper = getComputedStyle(root).getPropertyValue('--color-paper').trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', paper);
+  };
+  sync();
+  btn?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') root.dataset.theme = 'dark';
+    else delete root.dataset.theme;
+    try {
+      localStorage.setItem('theme', next);
+    } catch {}
+    sync();
+  });
+
+  // Active section on the home page
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav]')];
+  const sections = links
+    .map((a) => document.getElementById(a.dataset.nav!))
+    .filter((s): s is HTMLElement => s !== null);
+
+  if (sections.length) {
+    // Active = last section whose top passed a line at one third of the viewport.
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const line = window.innerHeight / 3;
+      const atBottom = window.scrollY > 0 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      // on the hero nothing is active
+      let active: HTMLElement | undefined;
+      for (const s of sections) if (s.getBoundingClientRect().top <= line) active = s;
+      if (atBottom) active = sections[sections.length - 1];
+      for (const a of links) {
+        if (active && a.dataset.nav === active.id) a.setAttribute('aria-current', 'true');
+        else a.removeAttribute('aria-current');
+      }
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    addEventListener('hashchange', onScroll);
+    update();
+  }
+</script>

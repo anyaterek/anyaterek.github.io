@@ -1,0 +1,76 @@
+---
+import '../styles/site.css';
+import Header from '../components/site/Header.astro';
+import { person } from '../data/profile';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** default active nav item */
+  section?: 'works' | 'experience' | 'contact';
+}
+
+const {
+  title = `${person.name} — tech lead, fullstack engineer, painter`,
+  description = `${person.line} Code and canvases in one catalog.`,
+  section,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={person.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f5f3ee" />
+    <script is:inline>
+      // Theme before first paint, no flash. Light by default.
+      // ?theme=light|dark overrides the stored choice.
+      var q = new URLSearchParams(location.search).get('theme');
+      var t = q === 'light' || q === 'dark' ? q : null;
+      try {
+        if (t) localStorage.setItem('theme', t);
+        else t = localStorage.getItem('theme');
+      } catch (e) {}
+      if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">skip to content</a>
+    <Header current={section} />
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap footer-row">
+        <span class="mono dim">© 2026 {person.name}</span>
+        <span class="mono dim">rev 10.2026 · astro</span>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .site-footer {
+    border-top: var(--line-hair) solid var(--color-rule);
+    padding-block: var(--space-6);
+  }
+
+  .footer-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .dim {
+    color: var(--color-ink-3);
+  }
+</style>

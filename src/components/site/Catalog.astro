@@ -1,0 +1,23 @@
+---
+/** Catalog: a plain grid of pinned-repo cards. Hidden works are already filtered in visibleWorks. */
+import WorkCard from './WorkCard.astro';
+import { visibleWorks } from '../../data/works';
+---
+
+<ul class="grid">
+  {visibleWorks.map((w) => <WorkCard work={w} />)}
+</ul>
+
+<style>
+  .grid {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 48rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

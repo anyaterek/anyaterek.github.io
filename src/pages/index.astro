@@ -1,0 +1,313 @@
+---
+import Site from '../layouts/Site.astro';
+import Catalog from '../components/site/Catalog.astro';
+import { person, experience, education, contacts } from '../data/profile';
+
+const ART = `                          ╷
+       ╭────╮             │
+            │          ───┼─────<span class="node">●</span>
+       ╭────┤             │
+  ╭╮   │    │             │
+──╯╰╮╭─┤    │             │
+    ╰╯ ╰────┴─────────────╯`;
+---
+
+<Site>
+  <section class="hero wrap" aria-labelledby="hero-name">
+    <h1 id="hero-name" class="visually-hidden">{person.name}</h1>
+    {/* signal → a → wire along the baseline → t → terminal node; same idea as the header monogram */}
+    <pre class="art" aria-hidden="true" set:html={ART}></pre>
+    <div class="term">
+      <p class="prompt">whoami</p>
+      <p class="out strong">{person.whoami}</p>
+      <p class="out dim">∴ {person.roles.join(' · ')} ∴</p>
+    </div>
+  </section>
+
+  <section class="section" id="works" aria-labelledby="works-title">
+    <div class="wrap">
+      <header class="section-head">
+        <h2 id="works-title" class="prompt">ls works/</h2>
+      </header>
+      <Catalog />
+    </div>
+  </section>
+
+  <section class="section" id="experience" aria-labelledby="experience-title">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="prompt">git log --oneline</p>
+        <h2 id="experience-title">Experience</h2>
+        <p>{person.tenure}</p>
+      </header>
+
+      <ol class="jobs">
+        {
+          experience.map((j) => (
+            <li class="job">
+              <div class="job-head">
+                <h3>{j.role}</h3>
+                <p class="job-meta">
+                  <span>{j.company}</span>
+                  <span>{j.location}</span>
+                  <span class="period">{j.period}</span>
+                </p>
+              </div>
+              <ul class="bullets">
+                {j.bullets.map((b) => (
+                  <li>{b}</li>
+                ))}
+              </ul>
+              {j.stack && (
+                <p class="stack mono">
+                  <span class="k">Stack:</span> {j.stack}
+                </p>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="edu-block">
+        <h3 class="edu-title">Education</h3>
+        <ol class="edu-list">
+          {
+            education.map((e) => (
+              <li>
+                <span class="edu-tag mono">edu</span>
+                <span class="edu-years mono">{e.years}</span>
+                <span class="edu-name">{e.title}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="prompt">cat contacts</p>
+        <h2 id="contact-title">Contact</h2>
+      </header>
+      <dl class="kv contacts">
+        {
+          contacts.map((c) => (
+            <div>
+              <dt>{c.channel}</dt>
+              <dd>
+                <a
+                  class="text-link"
+                  href={c.href}
+                  {...(c.href.startsWith('http') ? { rel: 'me noopener', target: '_blank' } : {})}
+                >
+                  {c.label}
+                  {c.href.startsWith('http') && <span aria-hidden="true"> ↗</span>}
+                </a>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+</Site>
+
+<style>
+  .hero {
+    display: grid;
+    gap: var(--space-5);
+    padding-block: var(--space-8) var(--space-8);
+  }
+
+  /* character art: one system mono font for every glyph, so box-drawing columns line up */
+  .art {
+    margin: 0;
+    font-family: var(--font-art);
+    font-size: var(--text-art);
+    line-height: var(--leading-art);
+    color: var(--color-ink-3);
+    white-space: pre;
+    overflow: hidden;
+  }
+
+  .art :global(.node) {
+    color: var(--color-accent);
+  }
+
+  .term {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    line-height: var(--leading-body);
+    margin-top: var(--space-4);
+  }
+
+  .out {
+    color: var(--color-ink);
+  }
+
+  .out.strong {
+    font-weight: var(--weight-strong);
+  }
+
+  .out.dim {
+    color: var(--color-ink-2);
+  }
+
+
+
+  .prompt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .count {
+    color: var(--color-ink-3);
+  }
+
+  /* ---------- experience: CV entries ---------- */
+  .jobs {
+    border-top: var(--line-hair) solid var(--color-rule);
+  }
+
+  .job {
+    display: grid;
+    gap: var(--space-3);
+    padding-block: var(--space-6);
+    border-bottom: var(--line-hair) solid var(--color-rule);
+  }
+
+  .job > * {
+    max-width: var(--measure);
+  }
+
+  .job > .job-head {
+    max-width: none;
+  }
+
+  /* one line: Role · Company · Location · Period */
+  .job-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .job h3 {
+    font-size: var(--text-lead);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-heading);
+  }
+
+  .job-meta {
+    display: contents;
+    color: var(--color-ink-3);
+  }
+
+  .job-meta span {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-ink-3);
+  }
+
+  .job-meta span::before {
+    content: '· ';
+  }
+
+  .bullets {
+    display: grid;
+    gap: var(--space-2);
+    color: var(--color-ink-2);
+  }
+
+  .bullets li {
+    position: relative;
+    padding-left: var(--space-5);
+  }
+
+  .bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc(var(--leading-body) * 0.5em);
+    width: var(--space-3);
+    height: var(--line-hair);
+    background: var(--color-rule-strong);
+  }
+
+  .stack {
+    color: var(--color-ink-3);
+  }
+
+  .stack .k {
+    color: var(--color-ink-2);
+  }
+
+  /* ---------- education: --color-edu ---------- */
+  .edu-block {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-7);
+  }
+
+  .edu-title {
+    font-size: var(--text-lead);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-heading);
+  }
+
+  .edu-list {
+    border-top: var(--line-hair) solid var(--color-rule);
+  }
+
+  .edu-list li {
+    display: grid;
+    grid-template-columns: auto var(--col-key) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    border-bottom: var(--line-hair) solid var(--color-rule);
+  }
+
+  .edu-tag {
+    color: var(--color-edu);
+    border: var(--line-hair) solid currentColor;
+    border-radius: var(--radius-chip);
+    padding: 0 var(--space-1);
+    font-size: var(--text-label);
+    line-height: var(--leading-tight);
+  }
+
+  .edu-years {
+    color: var(--color-edu);
+    white-space: nowrap;
+  }
+
+  .edu-name {
+    color: var(--color-ink);
+  }
+
+  .contacts {
+    font-size: var(--text-body);
+  }
+
+  @media (max-width: 29.99rem) {
+    .edu-list li {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .edu-name {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .hero {
+      padding-block: var(--space-9) var(--space-9);
+    }
+  }
+</style>
