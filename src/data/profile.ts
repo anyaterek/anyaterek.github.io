@@ -4,7 +4,7 @@ export const person = {
   whoami: 'anna terekhova',
   /** GitHub bio, verbatim */
   bio: '∴ Engineer of crossings ∴',
-  roles: ['team lead of cross-functional teams', 'fullstack'],
+  roles: ['team lead', 'fullstack'],
   line: 'Tech lead (medtech), fullstack engineer.',
   /** cv-generic-en.md, Summary */
   tenure: '8 years in web development and 3.5 years in lead roles.',
